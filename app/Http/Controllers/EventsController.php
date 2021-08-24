@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Date;
+use DB;
 
 class EventsController extends BaseController
 {
@@ -97,7 +98,35 @@ class EventsController extends BaseController
      */
 
     public function getEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 1');
+        //throw new \Exception('implement in coding task 1');
+
+	    $arrAllWorkshops = DB::select('select * from workshops');
+	    $arrAllWorkshops = json_decode(json_encode( $arrAllWorkshops ), true);
+
+	    if( !empty( $arrAllWorkshops) ) {
+		    $arrWorkshops = [];
+		    foreach( $arrAllWorkshops as $arrWorkshop ) {
+				$arrWorkshops[ $arrWorkshop['id'] ] = $arrWorkshop;
+		    }
+		    $arrAllWorkshops = $arrWorkshops;
+	    }
+
+	    $arrAllEvents = DB::select('select * from events');
+	    $arrAllEvents = json_decode(json_encode( $arrAllEvents ), true);
+
+	    if( !empty( $arrAllEvents) ) {
+		    foreach ($arrAllEvents as $intIndex => $arrEvent) {
+			    if (!empty($arrAllWorkshops)) {
+				    foreach ($arrAllWorkshops as $arrWorkshop) {
+					    if ($arrWorkshop['event_id'] == $arrEvent['id']) {
+						    $arrAllEvents[$intIndex]['workshops'][] = $arrWorkshop;
+					    }
+				    }
+			    }
+		    }
+	    }
+
+	    return response()->json($arrAllEvents);
     }
 
 
